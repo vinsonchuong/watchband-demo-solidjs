@@ -1,0 +1,14 @@
+{
+  "name": "watchband-solidjs",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "vite"
+  },
+  "dependencies": {
+    "watchband": "^1.2.0"
+  },
+  "devDependencies": {
+    "vite": "^5.4.9"
+  }
+}
