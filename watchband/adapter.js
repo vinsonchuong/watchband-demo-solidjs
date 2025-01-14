@@ -10,9 +10,9 @@ import {
   bindChildPart,
   appendChild,
 } from 'watchband/html'
-import {isSignal, Computed} from 'watchband/signal'
+import {Computed} from 'watchband/signal'
 
-export {State} from 'watchband/component'
+export {State, Computed} from 'watchband/component'
 
 const bindChild = chain(
   (next) => (context, element, maybeChildArray) => {
@@ -24,18 +24,6 @@ const bindChild = chain(
       next(context, element, child)
     }
   },
-  (next) => (context, element, child) => {
-    return next(
-      context,
-      element,
-      isSignal(child)
-        ? new Computed(() => {
-            const value = child.get()
-            return value?.element ?? value
-          })
-        : child,
-    )
-  },
   bindChildListSignal,
   bindChildSignal,
   bindChildListPart,
@@ -43,7 +31,7 @@ const bindChild = chain(
   appendChild,
 )
 
-const baseHtml = makeHtml(
+export const html = makeHtml(
   window,
   chain(
     (next) => (context, tag, attributes, children) => {
@@ -56,12 +44,22 @@ const baseHtml = makeHtml(
   chain(configureCreateFragment(bindChild)),
 )
 
-export function html(strings, ...values) {
-  return baseHtml(strings, ...values).element
-}
-
 export function render(component, container = document.body) {
-  container.append(component())
+  const {element} = component()
+  container.append(element)
 }
 
-export function Show() {}
+export function Show({when, fallback = '', children}) {
+  const signal = new Computed(() => {
+    return when.get() ? children[0] : fallback
+  })
+  return html`${signal}`
+}
+
+export function For({each, children: [render]}) {
+  const signal = new Computed(() => {
+    return each.get().map((item) => render(item).element)
+  })
+
+  return html`${signal}`
+}
